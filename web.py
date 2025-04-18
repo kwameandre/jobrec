@@ -20,7 +20,7 @@ st.set_page_config(
     layout="wide"
 )
 
-ANTHROPIC_API_KEY = st.secrets["api_keys"]["anthropic"]
+ANTHROPIC_API_KEY = st.secrets["anthropic"]
 # Function to read PDF files
 def read_pdf(file):
     pdf_reader = PyPDF2.PdfReader(file)
