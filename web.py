@@ -99,7 +99,7 @@ def get_jobs(search_term, location=None, experience_level=None):
     Fetch jobs from Remotive API.
     """
     try:
-        response = requests.get("https://remotive.io/api/remote-jobs", timeout=10)
+        response = requests.get("https://remotive.com/api/remote-jobs", timeout=10)
         if response.status_code != 200:
             st.error("Error fetching jobs from Remotive.")
             return pd.DataFrame()
