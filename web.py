@@ -82,7 +82,7 @@ def get_jobs(search_term, location=None, experience_level=None):
             search_term=full_search_term,
             location=location if location else None,
             results_wanted=100,
-            hours_old=72,
+            #hours_old=72,
             country_indeed='USA'
         )
 
