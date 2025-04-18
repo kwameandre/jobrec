@@ -22,38 +22,55 @@ st.set_page_config(
 
 ANTHROPIC_API_KEY = st.secrets["anthropic"]
 # Function to read PDF files
+# Function to read PDF files
 def read_pdf(file):
-    pdf_reader = PyPDF2.PdfReader(file)
-    text = ""
-    for page in pdf_reader.pages:
-        text += page.extract_text() + "\n"
-    return text
+    try:
+        pdf_reader = PyPDF2.PdfReader(io.BytesIO(file.getvalue()))
+        text = ""
+        for page in pdf_reader.pages:
+            text += page.extract_text() + "\n"
+        return text
+    except Exception as e:
+        st.error(f"Error reading PDF file: {str(e)}")
+        return None
 
 # Function to read DOCX files
 def read_docx(file):
-    doc = docx.Document(file)
-    text = ""
-    for para in doc.paragraphs:
-        text += para.text + "\n"
-    return text
+    try:
+        doc = docx.Document(io.BytesIO(file.getvalue()))
+        text = ""
+        for para in doc.paragraphs:
+            text += para.text + "\n"
+        return text
+    except Exception as e:
+        st.error(f"Error reading DOCX file: {str(e)}")
+        return None
 
 # Function to read TXT files
 def read_txt(file):
-    text = file.read().decode("utf-8")
-    return text
+    try:
+        text = file.getvalue().decode("utf-8")
+        return text
+    except Exception as e:
+        st.error(f"Error reading TXT file: {str(e)}")
+        return None
 
 # Function to extract resume text based on file type
 def extract_resume_text(file):
-    file_extension = file.name.split('.')[-1].lower()
-    
-    if file_extension == 'pdf':
-        return read_pdf(file)
-    elif file_extension == 'docx':
-        return read_docx(file)
-    elif file_extension == 'txt':
-        return read_txt(file)
-    else:
-        st.error(f"Unsupported file format: {file_extension}")
+    try:
+        file_extension = file.name.split('.')[-1].lower()
+        
+        if file_extension == 'pdf':
+            return read_pdf(file)
+        elif file_extension == 'docx':
+            return read_docx(file)
+        elif file_extension == 'txt':
+            return read_txt(file)
+        else:
+            st.error(f"Unsupported file format: {file_extension}")
+            return None
+    except Exception as e:
+        st.error(f"Error processing file: {str(e)}")
         return None
 
 # Function to get jobs using jobspy
@@ -63,7 +80,7 @@ def get_jobs(search_term, location=None, experience_level=None):
         full_search_term = f"{search_term} {experience_level}" if experience_level else search_term
         # Reduce results_wanted to limit API calls
         job_results = scrape_jobs(
-            site_name=["indeed", "linkedin", "zip_recruiter", "glassdoor", "google"],  # Reduced number of sources
+            site_name=["indeed", "linkedin"],  # Reduced number of sources
             search_term=full_search_term,
             location=location if location else None,
             results_wanted=100,  # Get 100 results
@@ -81,6 +98,11 @@ def get_jobs(search_term, location=None, experience_level=None):
 
 # Function to analyze jobs with Claude API
 def analyze_jobs_with_claude(resume_text, jobs_df, additional_skills=None, top_n=20):
+    # Check if API key is available
+    if not ANTHROPIC_API_KEY:
+        st.error("Anthropic API key not found. Please set it in Streamlit secrets.")
+        return []
+        
     # Initialize Anthropic client with API key
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
     
@@ -223,45 +245,51 @@ def main():
         uploaded_file = st.file_uploader("Choose a file (PDF, DOCX, or TXT)", type=["pdf", "docx", "txt"])
         
         if uploaded_file is not None:
-            st.session_state.uploaded_file_name = uploaded_file.name
-            with st.spinner("Extracting resume text..."):
-                resume_text = extract_resume_text(uploaded_file)
-                if resume_text:
-                    st.session_state.resume_text = resume_text
-                    st.success(f"Successfully processed {uploaded_file.name}")
-                    
-                    # Show a preview of the extracted text
-                    with st.expander("Resume Text Preview"):
-                        st.text_area("Extracted text", resume_text[:1000] + "..." if len(resume_text) > 1000 else resume_text, height=200, disabled=True)
-                    
-                    # Job preferences section
-                    st.subheader("Job Preferences")
-                    
-                    # Search term input
-                    search_term = st.text_input("Job Search Term (e.g., Software Engineer, Data Scientist)", st.session_state.search_term)
-                    st.session_state.search_term = search_term
-                    
-                    # Location input
-                    location = st.text_input("Location (City, State - e.g., Seattle, WA)", st.session_state.location)
-                    st.session_state.location = location
-                    
-                    # Job level selection
-                    job_level = st.selectbox(
-                        "Job Level",
-                        ["General", "Senior", "New Grad", "Internship"],
-                        index=["General", "Senior", "New Grad", "Internship"].index(st.session_state.job_level)
-                    )
-                    st.session_state.job_level = job_level
-                    
-                    # Additional skills input
-                    skills_input = st.text_area("Additional Skills (one per line)", 
-                                               "\n".join(st.session_state.additional_skills) if st.session_state.additional_skills else "")
-                    
-                    if skills_input:
-                        skills_list = [skill.strip() for skill in skills_input.split("\n") if skill.strip()]
-                        st.session_state.additional_skills = skills_list
-                    
-                    st.write("Once you've entered your preferences, go to the 'Review & Search' tab.")
+            try:
+                st.session_state.uploaded_file_name = uploaded_file.name
+                with st.spinner("Extracting resume text..."):
+                    resume_text = extract_resume_text(uploaded_file)
+                    if resume_text:
+                        st.session_state.resume_text = resume_text
+                        st.success(f"Successfully processed {uploaded_file.name}")
+                        
+                        # Show a preview of the extracted text
+                        with st.expander("Resume Text Preview"):
+                            st.text_area("Extracted text", resume_text[:1000] + "..." if len(resume_text) > 1000 else resume_text, height=200, disabled=True)
+                        
+                        # Job preferences section
+                        st.subheader("Job Preferences")
+                        
+                        # Search term input
+                        search_term = st.text_input("Job Search Term (e.g., Software Engineer, Data Scientist)", st.session_state.search_term)
+                        st.session_state.search_term = search_term
+                        
+                        # Location input
+                        location = st.text_input("Location (City, State - e.g., Seattle, WA)", st.session_state.location)
+                        st.session_state.location = location
+                        
+                        # Job level selection
+                        job_level = st.selectbox(
+                            "Job Level",
+                            ["General", "Senior", "New Grad", "Internship"],
+                            index=["General", "Senior", "New Grad", "Internship"].index(st.session_state.job_level)
+                        )
+                        st.session_state.job_level = job_level
+                        
+                        # Additional skills input
+                        skills_input = st.text_area("Additional Skills (one per line)", 
+                                                "\n".join(st.session_state.additional_skills) if st.session_state.additional_skills else "")
+                        
+                        if skills_input:
+                            skills_list = [skill.strip() for skill in skills_input.split("\n") if skill.strip()]
+                            st.session_state.additional_skills = skills_list
+                        
+                        st.write("Once you've entered your preferences, go to the 'Review & Search' tab.")
+                    else:
+                        st.error("Failed to extract text from the uploaded file. Please try a different file.")
+            except Exception as e:
+                st.error(f"Error processing file: {str(e)}")
+                st.info("Please try uploading a different file format or check if the file is corrupted.")
         else:
             st.info("Please upload your resume to continue.")
     
@@ -324,7 +352,7 @@ def main():
                                 st.session_state.search_completed = True
                                 st.success("Job analysis completed! Go to the 'Job Matches' tab to see your top matches.")
                             else:
-                                st.error("Failed to analyze jobs. Please check the Anthropic API key in the code.")
+                                st.error("Failed to analyze jobs. Please check the Anthropic API key in the secrets.")
         else:
             st.info("Please upload your resume in the 'Upload Resume' tab first.")
     
