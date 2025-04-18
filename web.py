@@ -20,24 +20,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# curl https://api.anthropic.com/v1/messages \
-#         --header "x-api-key: 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" \
-#         --header "anthropic-version: 2023-06-01" \
-#         --header "content-type: application/json" \
-#         --data \
-#     '{
-#         "model": "claude-3-5-sonnet-20241022",
-#         "max_tokens": 1024,
-#         "messages": [
-#             {"role": "user", "content": "Hello, world"}
-#         ]
-#     }'
-
-
-# Set your Anthropic API key directly in the code
-# NOTE: In a production environment, you should use environment variables or secrets management
-ANTHROPIC_API_KEY = "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"  # Replace with your actual API key
-
+ANTHROPIC_API_KEY = st.secrets["api_keys"]["anthropic"]
 # Function to read PDF files
 def read_pdf(file):
     pdf_reader = PyPDF2.PdfReader(file)
