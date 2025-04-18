@@ -80,7 +80,7 @@ def get_jobs(search_term, location=None, experience_level=None):
         full_search_term = f"{search_term} {experience_level}" if experience_level else search_term
         # Reduce results_wanted to limit API calls
         job_results = scrape_jobs(
-            site_name=["indeed"],  # Reduced number of sources
+            site_name=["linkedin"],  # Reduced number of sources
             search_term=full_search_term,
             location=location if location else None,
             results_wanted=100,  # Get 100 results
