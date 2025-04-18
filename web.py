@@ -138,7 +138,7 @@ def analyze_jobs_with_claude(resume_text, jobs_df, additional_skills=None, top_n
         return []
         
     # Initialize Anthropic client with API key
-    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    client = Anthropic(api_key=ANTHROPIC_API_KEY)
     
     # Prepare job data for Claude
     jobs_list = []
