@@ -5,3 +5,4 @@ pandas==2.1.4
 pyarrow==14.0.1
 numpy==1.26.2
 anthropic==0.21.0
+jobspy==1.1.11
