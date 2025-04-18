@@ -81,7 +81,7 @@ def get_jobs(search_term, location=None, experience_level=None):
             site_name=["indeed", "LinkedIn","zip_recruiter"],
             search_term=full_search_term,
             location=location if location else None,
-            results_wanted=100,
+            results_wanted=50,
             #hours_old=72,
             country_indeed='USA'
         )
@@ -97,6 +97,7 @@ def get_jobs(search_term, location=None, experience_level=None):
 # Function to analyze jobs with Claude API
 def analyze_jobs_with_claude(resume_text, jobs_df, additional_skills=None, top_n=20):
     # Check if API key is available
+    st.write(f"money")
     if not ANTHROPIC_API_KEY:
         st.error("Anthropic API key not found. Please set it in Streamlit secrets.")
         return []
@@ -107,7 +108,7 @@ def analyze_jobs_with_claude(resume_text, jobs_df, additional_skills=None, top_n
     # Prepare job data for Claude
     jobs_list = []
     for i, job in jobs_df.iterrows():
-        if i >= 100:  # Limit to 100 jobs to avoid token limits
+        if i >= 50:  # Limit to 100 jobs to avoid token limits
             break
             
         job_data = {
