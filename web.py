@@ -74,25 +74,61 @@ def extract_resume_text(file):
         return None
 
 # Function to get jobs using jobspy
+# def get_jobs(search_term, location=None, experience_level=None):
+#     try:
+#         full_search_term = f"{search_term} {experience_level}" if experience_level else search_term
+#         job_results = scrape_jobs(
+#             site_name=["indeed", "LinkedIn","zip_recruiter"],
+#             search_term=full_search_term,
+#             location=location if location else None,
+#             results_wanted=50,
+#             #hours_old=72,
+#             country_indeed='USA'
+#         )
+
+#         st.write(f"🔍 Job search attempted: {full_search_term} in {location}")
+#         st.write(f"✅ Results returned: {len(job_results)}")
+
+#         return job_results
+#     except Exception as e:
+#         st.error(f"Job search error: {e}")
+#         return pd.DataFrame()
+
 def get_jobs(search_term, location=None, experience_level=None):
+    """
+    Fetch jobs from Remotive API.
+    """
     try:
-        full_search_term = f"{search_term} {experience_level}" if experience_level else search_term
-        job_results = scrape_jobs(
-            site_name=["indeed", "LinkedIn","zip_recruiter"],
-            search_term=full_search_term,
-            location=location if location else None,
-            results_wanted=50,
-            #hours_old=72,
-            country_indeed='USA'
-        )
+        response = requests.get("https://remotive.io/api/remote-jobs", timeout=10)
+        if response.status_code != 200:
+            st.error("Error fetching jobs from Remotive.")
+            return pd.DataFrame()
 
-        st.write(f"🔍 Job search attempted: {full_search_term} in {location}")
-        st.write(f"✅ Results returned: {len(job_results)}")
+        jobs_data = response.json().get("jobs", [])
+        filtered_jobs = []
 
-        return job_results
+        for job in jobs_data:
+            if search_term.lower() in job["title"].lower():
+                # Optional: match experience level keywords
+                if experience_level:
+                    if experience_level.lower() not in job["title"].lower():
+                        continue
+
+                filtered_jobs.append({
+                    "title": job["title"],
+                    "company": job["company_name"],
+                    "location": job["candidate_required_location"],
+                    "description": job["description"],
+                    "url": job["url"],
+                    "date_posted": job["publication_date"]
+                })
+
+        return pd.DataFrame(filtered_jobs)
+
     except Exception as e:
-        st.error(f"Job search error: {e}")
+        st.error(f"Job search failed: {e}")
         return pd.DataFrame()
+
 
 # Function to analyze jobs with Claude API
 def analyze_jobs_with_claude(resume_text, jobs_df, additional_skills=None, top_n=20):
