@@ -75,25 +75,23 @@ def extract_resume_text(file):
 
 # Function to get jobs using jobspy
 def get_jobs(search_term, location=None, experience_level=None):
-    """Search for jobs using jobspy with error handling and rate limiting."""
     try:
         full_search_term = f"{search_term} {experience_level}" if experience_level else search_term
-        # Reduce results_wanted to limit API calls
         job_results = scrape_jobs(
-            site_name=["zip_recruiter", "glassdoor", "google"],  # Reduced number of sources "zip_recruiter", "glassdoor", "google"
+            site_name=["indeed", "linkedin"],
             search_term=full_search_term,
             location=location if location else None,
-            results_wanted=100,  # Get 100 results
+            results_wanted=100,
             hours_old=72,
             country_indeed='USA'
         )
 
-        if job_results.empty:
-            print(f"No jobs found for {search_term} in {location}")
+        st.write(f"🔍 Job search attempted: {full_search_term} in {location}")
+        st.write(f"✅ Results returned: {len(job_results)}")
 
         return job_results
     except Exception as e:
-        print(f"Error searching for jobs: {e}")
+        st.error(f"Job search error: {e}")
         return pd.DataFrame()
 
 # Function to analyze jobs with Claude API
