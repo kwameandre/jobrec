@@ -7,7 +7,7 @@ import os
 import json
 import pandas as pd
 import time
-import anthropic
+from anthropic import Anthropic
 from typing import List, Dict, Any
 
 # Import the job search function
@@ -133,7 +133,6 @@ def get_jobs(search_term, location=None, experience_level=None):
 # Function to analyze jobs with Claude API
 def analyze_jobs_with_claude(resume_text, jobs_df, additional_skills=None, top_n=20):
     # Check if API key is available
-    st.write(f"money")
     if not ANTHROPIC_API_KEY:
         st.error("Anthropic API key not found. Please set it in Streamlit secrets.")
         return []
