@@ -7,7 +7,7 @@ import os
 import json
 import pandas as pd
 import time
-from anthropic import Anthropic
+from anthropic import Client
 from typing import List, Dict, Any
 
 # Import the job search function
@@ -138,7 +138,7 @@ def analyze_jobs_with_claude(resume_text, jobs_df, additional_skills=None, top_n
         return []
         
     # Initialize Anthropic client with API key
-    client = Anthropic(api_key=ANTHROPIC_API_KEY)
+    client = Client(api_key=ANTHROPIC_API_KEY)
     
     # Prepare job data for Claude
     jobs_list = []
