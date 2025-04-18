@@ -78,7 +78,7 @@ def get_jobs(search_term, location=None, experience_level=None):
     try:
         full_search_term = f"{search_term} {experience_level}" if experience_level else search_term
         job_results = scrape_jobs(
-            site_name=["indeed", "LinkedIn","zip_recruiter", "glassdoor", "google"],
+            site_name=["indeed", "LinkedIn","zip_recruiter", "google"],
             search_term=full_search_term,
             location=location if location else None,
             results_wanted=100,
